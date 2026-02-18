@@ -1,118 +1,183 @@
-import { createFileRoute } from '@tanstack/react-router'
-import {
-  Zap,
-  Server,
-  Route as RouteIcon,
-  Shield,
-  Waves,
-  Sparkles,
-} from 'lucide-react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useAuth, useUser } from '@clerk/clerk-react'
+import { useState, useEffect } from 'react'
+import { getSocket, connectSocket } from '../lib/socket'
+import { useGameStore } from '../lib/game-store'
+import type { ClientGameState } from '../lib/game.types'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({ component: HomePage })
 
-function App() {
-  const features = [
-    {
-      icon: <Zap className="w-12 h-12 text-cyan-400" />,
-      title: 'Powerful Server Functions',
-      description:
-        'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
-    },
-    {
-      icon: <Server className="w-12 h-12 text-cyan-400" />,
-      title: 'Flexible Server Side Rendering',
-      description:
-        'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
-    },
-    {
-      icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
-      title: 'API Routes',
-      description:
-        'Build type-safe API endpoints alongside your application. No separate backend needed.',
-    },
-    {
-      icon: <Shield className="w-12 h-12 text-cyan-400" />,
-      title: 'Strongly Typed Everything',
-      description:
-        'End-to-end type safety from server to client. Catch errors before they reach production.',
-    },
-    {
-      icon: <Waves className="w-12 h-12 text-cyan-400" />,
-      title: 'Full Streaming Support',
-      description:
-        'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
-    },
-    {
-      icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
-      title: 'Next Generation Ready',
-      description:
-        'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',
-    },
-  ]
+function HomePage() {
+  const navigate = useNavigate()
+  const { isSignedIn } = useAuth()
+  const { user } = useUser()
+  const { setRoomId, setGameState, setError } = useGameStore()
+
+  const [joinCode, setJoinCode] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
+
+  useEffect(() => {
+    if (!isSignedIn) return
+
+    const socket = getSocket()
+    connectSocket()
+
+    socket.on('room_created', ({ roomId }: { roomId: string }) => {
+      setRoomId(roomId)
+      void navigate({ to: '/room/$roomId', params: { roomId } })
+    })
+
+    socket.on('state_update', (state: ClientGameState) => {
+      setGameState(state)
+    })
+
+    socket.on('error', ({ message }: { message: string }) => {
+      setError(message)
+      setIsCreating(false)
+      setIsJoining(false)
+    })
+
+    return () => {
+      socket.off('room_created')
+      socket.off('state_update')
+      socket.off('error')
+    }
+  }, [isSignedIn, navigate, setRoomId, setGameState, setError])
+
+  const handleCreateRoom = () => {
+    if (!user) return
+    setIsCreating(true)
+    const socket = getSocket()
+    socket.emit('create_room', {
+      userId: user.id,
+      name: user.fullName ?? user.username ?? 'Player',
+    })
+  }
+
+  const handleJoinRoom = () => {
+    if (!user || !joinCode.trim()) return
+    setIsJoining(true)
+    const socket = getSocket()
+    socket.emit('join_room', {
+      roomId: joinCode.trim().toUpperCase(),
+      userId: user.id,
+      name: user.fullName ?? user.username ?? 'Player',
+    })
+    setRoomId(joinCode.trim().toUpperCase())
+    void navigate({
+      to: '/room/$roomId',
+      params: { roomId: joinCode.trim().toUpperCase() },
+    })
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <section className="relative py-20 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <img
-              src="/tanstack-circle-logo.png"
-              alt="TanStack Logo"
-              className="w-24 h-24 md:w-32 md:h-32"
-            />
-            <h1 className="text-6xl md:text-7xl font-black text-white [letter-spacing:-0.08em]">
-              <span className="text-gray-300">TANSTACK</span>{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                START
-              </span>
-            </h1>
-          </div>
-          <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-            The framework for next generation AI applications
-          </p>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            Full-stack framework powered by TanStack Router for React and Solid.
-            Build modern applications with server functions, streaming, and type
-            safety.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="https://tanstack.com/start"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-            >
-              Documentation
-            </a>
-            <p className="text-gray-400 text-sm mt-2">
-              Begin your TanStack Start journey by editing{' '}
-              <code className="px-2 py-1 bg-slate-700 rounded text-cyan-400">
-                /src/routes/index.tsx
-              </code>
-            </p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center px-4">
+      {/* Hero */}
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-6">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          Realtime Multiplayer
         </div>
-      </section>
+        <h1 className="text-7xl font-black text-white mb-4 tracking-tight">
+          Moon<span className="text-amber-400">fall</span>
+        </h1>
+        <p className="text-slate-400 text-xl max-w-md mx-auto">
+          A social deduction game of trust, deception, and survival.
+        </p>
+      </div>
 
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
-            >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-gray-400 leading-relaxed">
-                {feature.description}
-              </p>
+      {/* Actions */}
+      {isSignedIn ? (
+        <div className="w-full max-w-sm space-y-4">
+          <button
+            onClick={handleCreateRoom}
+            disabled={isCreating}
+            className="w-full py-4 px-6 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold text-lg rounded-xl transition-all duration-200 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5"
+          >
+            {isCreating ? 'Creating...' : '🌙 Create Room'}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-700" />
             </div>
-          ))}
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-slate-900 text-slate-500">
+                or join with code
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+              placeholder="ROOM CODE"
+              maxLength={8}
+              className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl text-white placeholder-slate-500 font-mono text-center text-lg tracking-widest outline-none transition-colors"
+            />
+            <button
+              onClick={handleJoinRoom}
+              disabled={isJoining || !joinCode.trim()}
+              className="px-5 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
+            >
+              {isJoining ? '...' : 'Join'}
+            </button>
+          </div>
         </div>
-      </section>
+      ) : (
+        <div className="text-center">
+          <p className="text-slate-400 mb-4">Sign in to play</p>
+          <a
+            href="/sign-in"
+            className="px-8 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-colors"
+          >
+            Sign In
+          </a>
+        </div>
+      )}
+
+      {/* Role preview */}
+      <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl w-full">
+        {[
+          {
+            emoji: '🐺',
+            name: 'Werewolf',
+            desc: 'Hunt the village',
+            color: 'red',
+          },
+          {
+            emoji: '🔮',
+            name: 'Seer',
+            desc: 'Reveal the truth',
+            color: 'purple',
+          },
+          {
+            emoji: '💊',
+            name: 'Doctor',
+            desc: 'Protect the innocent',
+            color: 'green',
+          },
+          {
+            emoji: '🏡',
+            name: 'Villager',
+            desc: 'Find the wolves',
+            color: 'blue',
+          },
+        ].map((role) => (
+          <div
+            key={role.name}
+            className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 text-center hover:border-slate-600 transition-colors"
+          >
+            <div className="text-3xl mb-2">{role.emoji}</div>
+            <div className="text-white font-semibold text-sm">{role.name}</div>
+            <div className="text-slate-500 text-xs mt-1">{role.desc}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

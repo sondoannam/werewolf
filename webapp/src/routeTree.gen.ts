@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoomRoomIdRouteImport } from './routes/room/$roomId'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoClerkRouteImport } from './routes/demo/clerk'
 import { Route as DemoSentryTestingRouteImport } from './routes/demo/sentry.testing'
@@ -17,6 +18,11 @@ import { Route as DemoSentryTestingRouteImport } from './routes/demo/sentry.test
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
+  id: '/room/$roomId',
+  path: '/room/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
 }
 export interface FileRoutesById {
@@ -52,6 +60,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/demo/clerk': typeof DemoClerkRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/room/$roomId': typeof RoomRoomIdRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
 }
 export interface FileRouteTypes {
@@ -60,14 +69,21 @@ export interface FileRouteTypes {
     | '/'
     | '/demo/clerk'
     | '/demo/tanstack-query'
+    | '/room/$roomId'
     | '/demo/sentry/testing'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/clerk' | '/demo/tanstack-query' | '/demo/sentry/testing'
+  to:
+    | '/'
+    | '/demo/clerk'
+    | '/demo/tanstack-query'
+    | '/room/$roomId'
+    | '/demo/sentry/testing'
   id:
     | '__root__'
     | '/'
     | '/demo/clerk'
     | '/demo/tanstack-query'
+    | '/room/$roomId'
     | '/demo/sentry/testing'
   fileRoutesById: FileRoutesById
 }
@@ -75,6 +91,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoClerkRoute: typeof DemoClerkRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  RoomRoomIdRoute: typeof RoomRoomIdRoute
   DemoSentryTestingRoute: typeof DemoSentryTestingRoute
 }
 
@@ -85,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/$roomId': {
+      id: '/room/$roomId'
+      path: '/room/$roomId'
+      fullPath: '/room/$roomId'
+      preLoaderRoute: typeof RoomRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/tanstack-query': {
@@ -115,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoClerkRoute: DemoClerkRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  RoomRoomIdRoute: RoomRoomIdRoute,
   DemoSentryTestingRoute: DemoSentryTestingRoute,
 }
 export const routeTree = rootRouteImport
