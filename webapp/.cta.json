@@ -1,0 +1,19 @@
+{
+  "projectName": "webapp",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "pnpm",
+  "tailwind": true,
+  "addOnOptions": {},
+  "git": true,
+  "version": 1,
+  "framework": "react-cra",
+  "chosenAddOns": [
+    "eslint",
+    "cloudflare",
+    "shadcn",
+    "clerk",
+    "tanstack-query",
+    "sentry"
+  ]
+}
