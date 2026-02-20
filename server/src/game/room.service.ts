@@ -60,12 +60,6 @@ export class RoomService {
     if (!state) {
       return { state: null!, error: 'Room not found' };
     }
-    if (state.phase !== GamePhase.WAITING) {
-      return { state, error: 'Game already in progress' };
-    }
-    if (state.players.length >= state.config.maxPlayers) {
-      return { state, error: 'Room is full' };
-    }
 
     // Handle reconnect: player already exists (same userId)
     const existingIdx = state.players.findIndex((p) => p.id === player.id);
@@ -75,6 +69,13 @@ export class RoomService {
       delete state.players[existingIdx].disconnectedAt;
       await this.redis.setGameState(roomId, state);
       return { state };
+    }
+
+    if (state.phase !== GamePhase.WAITING) {
+      return { state, error: 'Game already in progress' };
+    }
+    if (state.players.length >= state.config.maxPlayers) {
+      return { state, error: 'Room is full' };
     }
 
     const newPlayer: Player = {
