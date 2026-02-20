@@ -1,5 +1,7 @@
 {
     "conventionalCommits.scopes": [
-        "app"
+        "app",
+        "server",
+        "web-client"
     ]
 }

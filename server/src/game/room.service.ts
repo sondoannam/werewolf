@@ -137,6 +137,15 @@ export class RoomService {
   }
 
   /**
+   * Persists an already-mutated GameState to Redis.
+   * Use whenever the gateway has modified state and needs to save it
+   * without going through a higher-level method.
+   */
+  async saveState(state: GameState): Promise<void> {
+    await this.redis.setGameState(state.roomId, state);
+  }
+
+  /**
    * Updates the room configuration (host only, WAITING phase only).
    */
   async updateConfig(

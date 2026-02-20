@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '../../redis/redis.service';
 import {
   GameState,
   GamePhase,
   PlayerRole,
   PlayerStatus,
   WinCondition,
-} from '../types/game.types';
+} from '@/game/types/game.types';
+import { RedisService } from '@/redis/redis.service';
 
 @Injectable()
 export class GameEngineService {
@@ -164,8 +164,11 @@ export class GameEngineService {
    * @returns WinCondition if game is over, null if it continues.
    */
   checkWinCondition(state: GameState): WinCondition | null {
+    // OFFLINE players are still in the grace window — treat them as alive
+    // so a disconnect doesn't prematurely trigger a win condition.
     const alivePlayers = state.players.filter(
-      (p) => p.status === PlayerStatus.ALIVE,
+      (p) =>
+        p.status === PlayerStatus.ALIVE || p.status === PlayerStatus.OFFLINE,
     );
     const aliveWolves = alivePlayers.filter(
       (p) => p.role === PlayerRole.WEREWOLF,

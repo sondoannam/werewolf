@@ -14,7 +14,7 @@ import { GameEngineService } from './engine/game-engine.service';
 import { StateViewService } from './state-view.service';
 import { GamePhase, PlayerRole, PlayerStatus } from './types/game.types';
 import type { GameState } from './types/game.types';
-import { nanoid } from 'nanoid';
+import { getNanoid } from '@/utils/nanoid';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -50,22 +50,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const state = await this.roomService.handleDisconnect(roomId, client.id);
     if (!state) return;
 
-    this.broadcastState(state);
+    await this.broadcastState(state);
     this.logger.log(`Player ${playerId} disconnected from room ${roomId}`);
 
-    // Schedule mod-kill after grace period
-    setTimeout(async () => {
-      const latestState = await this.engine.modKillPlayer(roomId, playerId);
-      if (latestState) {
-        this.broadcastState(latestState);
-        // Check win condition after mod-kill
-        const winner = this.engine.checkWinCondition(latestState);
-        if (winner) {
-          latestState.winner = winner;
-          latestState.phase = GamePhase.ENDED;
-          this.broadcastState(latestState);
+    // Schedule mod-kill after grace period.
+    // `void` silences no-floating-promises for the setTimeout callback.
+    setTimeout(() => {
+      void (async () => {
+        const latestState = await this.engine.modKillPlayer(roomId, playerId);
+        if (latestState) {
+          await this.broadcastState(latestState);
+          // Check win condition after mod-kill
+          const winner = this.engine.checkWinCondition(latestState);
+          if (winner) {
+            latestState.winner = winner;
+            latestState.phase = GamePhase.ENDED;
+            // Persist the ended state so subsequent reads see the correct phase
+            await this.roomService.saveState(latestState);
+            await this.broadcastState(latestState);
+          }
         }
-      }
+      })();
     }, 60_000);
   }
 
@@ -76,6 +81,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { userId: string; name: string; roomId?: string },
   ) {
+    const nanoid = await getNanoid();
     const roomId = payload.roomId ?? nanoid(8).toUpperCase();
     const state = await this.roomService.createRoom(roomId, {
       id: payload.userId,
@@ -87,7 +93,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await client.join(roomId);
 
     client.emit('room_created', { roomId });
-    this.broadcastState(state);
+    return this.broadcastState(state);
   }
 
   @SubscribeMessage('join_room')
@@ -112,7 +118,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     await client.join(payload.roomId);
 
-    this.broadcastState(state);
+    await this.broadcastState(state);
   }
 
   @SubscribeMessage('leave_room')
@@ -126,7 +132,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const state = await this.roomService.leaveRoom(roomId, playerId);
     await client.leave(roomId);
 
-    if (state) this.broadcastState(state);
+    if (state) await this.broadcastState(state);
   }
 
   @SubscribeMessage('update_config')
@@ -142,13 +148,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { state, error } = await this.roomService.updateConfig(
       payload.roomId,
       payload.userId,
-      payload.config as any,
+      payload.config as Partial<import('./types/game.types').RoomConfig>,
     );
     if (error) {
       client.emit('error', { message: error });
       return;
     }
-    if (state) this.broadcastState(state);
+    if (state) await this.broadcastState(state);
   }
 
   // ─── Game Start ──────────────────────────────────────────────────────────────
@@ -182,6 +188,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       `🎮 Game started with ${updated.players.length} players.`,
     );
 
+    // Persist roles + NIGHT phase before broadcasting so subsequent
+    // getState calls (night_action, handleDisconnect) see the live state.
+    await this.roomService.saveState(updated);
     await this.broadcastState(updated);
   }
 
@@ -236,10 +245,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         updated.winner = winner;
         updated.phase = GamePhase.ENDED;
       }
+      // Persist before broadcast so any concurrent read sees the new phase
+      await this.roomService.saveState(updated);
       await this.broadcastState(updated);
     } else {
-      // Save partial night actions back to Redis
-      await this.roomService['redis'].setGameState(state.roomId, state);
+      // Save partial night actions back to Redis via the public API
+      await this.roomService.saveState(state);
     }
   }
 
@@ -291,6 +302,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       updated = this.engine.transitionToNight(updated);
     }
 
+    // Persist before broadcast so any concurrent read sees the new phase
+    await this.roomService.saveState(updated);
     await this.broadcastState(updated);
   }
 
@@ -300,8 +313,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Broadcasts a personalized state view to each player in the room.
    */
   private async broadcastState(state: GameState): Promise<void> {
+    // Fetch all sockets once (not inside the loop) to avoid N+1 round trips
+    const sockets = await this.server.in(state.roomId).fetchSockets();
     for (const player of state.players) {
-      const sockets = await this.server.in(state.roomId).fetchSockets();
       const playerSocket = sockets.find((s) => s.id === player.socketId);
       if (playerSocket) {
         const view = this.stateView.buildClientView(state, player);
@@ -311,7 +325,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private allNightActionsSubmitted(state: GameState): boolean {
-    const { nightActions, players, config } = state;
+    const { nightActions, config } = state;
     const hasKill = !!nightActions.killTarget;
     const needsProtect = config.hasDoctor;
     const needsSeer = config.hasSeer;
