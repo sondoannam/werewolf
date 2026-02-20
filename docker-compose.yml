@@ -26,7 +26,7 @@ services:
   livekit:
     image: livekit/livekit-server:latest
     container_name: moonfall_livekit
-    command: --config /livekit.yaml --devel
+    command: --config /livekit.yaml --dev
     ports:
       - "7880:7880"
       - "7881:7881"

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "dotenv -e .env.local -- cross-env NODE_OPTIONS=\"--import ./instrument.server.mjs\" vite dev --port 3000",
+    "dev": "dotenv -e .env.local -- cross-env NODE_OPTIONS=\"--import ./instrument.server.mjs\" vite dev",
     "build": "vite build && node -e \"const fs = require('fs'); fs.mkdirSync('.output/server', { recursive: true }); fs.copyFileSync('instrument.server.mjs', '.output/server/instrument.server.mjs')\"",
     "preview": "vite preview",
     "test": "vitest run",
@@ -38,7 +38,8 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.18",
     "tw-animate-css": "^1.3.6",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "^0.3.11",
