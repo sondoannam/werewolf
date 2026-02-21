@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useAuth, useClerk, useUser } from '@clerk/clerk-react'
-import { useState, useEffect } from 'react'
-import { getSocket, connectSocket } from '../lib/socket'
-import { useGameStore } from '../lib/game-store'
-import { ROLE_MAP } from '../lib/role-cards'
-import { useCardFanPosition } from '../hooks/use-card-fan-position'
-import Footer from '../components/Footer'
-import type { ClientGameState } from '../lib/game.types'
+import { useState, useEffect, useCallback } from 'react'
+import { getSocket, connectSocket } from '@/lib/socket'
+import { useGameStore } from '@/lib/game-store'
+import { ROLE_MAP } from '@/lib/role-cards'
+import { generateGuestName } from '@/lib/guest-names'
+import { useCardFanPosition } from '@/hooks/use-card-fan-position'
+import Footer from '@/components/Footer'
+import type { ClientGameState } from '@/lib/game.types'
+import { Pen } from 'lucide-react'
 
 export const Route = createFileRoute('/')({ component: HomePage })
 
@@ -133,7 +135,12 @@ function HomePage() {
   const { signOut } = useClerk()
   const { setRoomId, setGameState, setError } = useGameStore()
   const { anchorRef, footerRef, mode, bottomOffset } = useCardFanPosition()
-  console.log(mode, bottomOffset)
+
+  const [guestName, setGuestName] = useState(() => generateGuestName())
+  const rerollGuestName = useCallback(
+    () => setGuestName(generateGuestName()),
+    [],
+  )
   const [joinCode, setJoinCode] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
@@ -298,46 +305,15 @@ function HomePage() {
                     </span>
                     <div className="h-px bg-white/10 flex-1" />
                   </div>
-
-                  {/* Join Room */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1 group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-slate-500 group-focus-within:text-indigo-400 transition-colors">
-                          tag
-                        </span>
-                      </div>
-                      <input
-                        className="w-full h-14 bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono tracking-widest text-lg uppercase shadow-inner outline-none"
-                        maxLength={6}
-                        placeholder="Enter 6-Digit Code"
-                        type="text"
-                        value={joinCode}
-                        onChange={(e) =>
-                          setJoinCode(e.target.value.toUpperCase())
-                        }
-                        onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
-                      />
-                    </div>
-                    <button
-                      onClick={handleJoinRoom}
-                      disabled={isJoining || !joinCode.trim()}
-                      className="h-14 px-8 rounded-xl bg-[#1e1b4b] border border-indigo-500/30 text-indigo-100 font-bold tracking-wide hover:bg-indigo-900/50 hover:border-indigo-400 hover:text-white hover:shadow-glow-blue transition-all flex items-center justify-center gap-2 min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span>{isJoining ? '...' : 'Join'}</span>
-                      <span className="material-symbols-outlined text-sm">
-                        arrow_forward
-                      </span>
-                    </button>
-                  </div>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-8">
-                {/* Guest identity preview */}
+              /* ── Not signed in ── */
+              <div className="flex flex-col gap-6">
+                {/* Guest identity */}
                 <div className="flex flex-col md:flex-row items-center gap-6">
-                  <div className="relative group cursor-pointer">
-                    <div className="w-24 h-24 rounded-full border-2 border-slate-600/50 p-1 shadow-[0_0_10px_rgba(100,100,120,0.2)] bg-[#1a0f10] relative overflow-hidden">
+                  <div className="relative shrink-0">
+                    <div className="w-20 h-20 rounded-full border-2 border-slate-600/50 p-1 shadow-[0_0_10px_rgba(100,100,120,0.2)] bg-[#1a0f10] overflow-hidden">
                       <img
                         alt="Guest avatar"
                         className="w-full h-full rounded-full object-cover opacity-60"
@@ -345,24 +321,23 @@ function HomePage() {
                       />
                       <div className="absolute inset-0 bg-slate-500/10 rounded-full" />
                     </div>
-                    <div className="absolute bottom-0 right-0 h-8 w-8 flex items-center justify-center bg-slate-700 text-slate-300 rounded-full shadow-lg border border-slate-600 transform translate-x-1 translate-y-1">
-                      <span className="material-symbols-outlined text-[14px]">
-                        casino
-                      </span>
+                    <div className="absolute bottom-0 right-0 h-7 w-7 flex items-center justify-center bg-slate-700 text-slate-300 rounded-full shadow-lg border border-slate-600 transform translate-x-1 translate-y-1">
+                      <Pen className="w-3 h-3" />
                     </div>
                   </div>
-                  <div className="flex-1 text-center md:text-left w-full">
+                  <div className="flex-1 w-full">
                     <label className="text-slate-400 text-xs uppercase tracking-widest font-semibold mb-2 block">
                       Guest Identity
                     </label>
-                    <div className="flex items-center justify-center md:justify-between gap-3 bg-black/30 p-3 rounded-lg border border-white/10">
+                    <div className="flex items-center gap-3 bg-black/30 p-3 rounded-lg border border-white/10">
                       <span
-                        className="text-slate-400 text-xl italic"
+                        className="flex-1 text-slate-300 text-lg"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        CrispyWendy #247
+                        {guestName}
                       </span>
                       <button
+                        onClick={rerollGuestName}
                         className="text-slate-500 hover:text-white transition-colors"
                         title="Randomize Name"
                       >
@@ -399,23 +374,39 @@ function HomePage() {
                     </span>
                     <div className="h-px bg-white/10 flex-1" />
                   </div>
-
-                  <button
-                    disabled
-                    className="w-full h-14 rounded-xl bg-black/20 border border-white/10 text-slate-500 font-bold tracking-wide cursor-not-allowed flex items-center justify-center gap-3 opacity-60"
-                    title="Guest mode coming soon"
-                  >
-                    <span className="material-symbols-outlined text-slate-500">
-                      person
-                    </span>
-                    <span>Play as Guest</span>
-                    <span className="text-xs bg-slate-800 px-2 py-0.5 rounded-full text-slate-400 ml-1">
-                      Soon
-                    </span>
-                  </button>
                 </div>
               </div>
             )}
+
+            {/* Join Room */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1 group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <span className="material-symbols-outlined text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                    tag
+                  </span>
+                </div>
+                <input
+                  className="w-full h-14 bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono tracking-widest text-lg uppercase shadow-inner outline-none"
+                  maxLength={6}
+                  placeholder="Enter Room Code"
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+                />
+              </div>
+              <button
+                onClick={handleJoinRoom}
+                disabled={isJoining || !joinCode.trim()}
+                className="h-14 px-8 rounded-xl bg-[#1e1b4b] border border-indigo-500/30 text-indigo-100 font-bold tracking-wide hover:bg-indigo-900/50 hover:border-indigo-400 hover:text-white hover:shadow-glow-blue transition-all flex items-center justify-center gap-2 min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>{isJoining ? '...' : 'Join'}</span>
+                <span className="material-symbols-outlined text-sm">
+                  arrow_forward
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </main>
