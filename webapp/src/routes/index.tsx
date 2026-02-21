@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { getSocket, connectSocket } from '../lib/socket'
 import { useGameStore } from '../lib/game-store'
 import { ROLE_MAP } from '../lib/role-cards'
+import { useCardFanPosition } from '../hooks/use-card-fan-position'
 import Footer from '../components/Footer'
 import type { ClientGameState } from '../lib/game.types'
 
@@ -80,13 +81,59 @@ function ThornDivider() {
   )
 }
 
+/** The actual card elements — shared between fixed and in-flow modes. */
+function CardFanCards() {
+  return (
+    <>
+      {CARD_FAN_LAYOUT.map((layout) => {
+        const role = ROLE_MAP.get(layout.role)
+        if (!role) return null
+        return (
+          <div
+            key={role.name}
+            className={`role-card absolute ${layout.featured ? 'w-36 h-52 md:w-44 md:h-60' : 'w-32 h-48 md:w-40 md:h-56'} rounded-xl border-2 ${layout.borderColor} shadow-2xl transform ${layout.offsetX} ${layout.offsetY} ${layout.rotation} ${layout.z} cursor-pointer overflow-hidden`}
+            style={{
+              backgroundImage:
+                'linear-gradient(135deg, #2a1b1d 0%, #1a1011 100%)',
+            }}
+          >
+            <div
+              className={`absolute inset-1 border border-white/5 rounded-lg ${layout.bgColor} flex flex-col items-center`}
+            >
+              <div
+                className="h-3/5 w-full bg-cover bg-center rounded-t-lg"
+                style={{ backgroundImage: `url('${role.image}')` }}
+              />
+              <div className="p-2 text-center">
+                <p
+                  className={`${layout.labelColor} text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Role
+                </p>
+                <p
+                  className={`text-slate-200 ${layout.featured ? 'font-bold text-lg' : 'text-sm'} mt-1 tracking-wide`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  {role.name}
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
 function HomePage() {
   const navigate = useNavigate()
   const { isSignedIn } = useAuth()
   const { user } = useUser()
   const { signOut } = useClerk()
   const { setRoomId, setGameState, setError } = useGameStore()
-
+  const { anchorRef, footerRef, mode, bottomOffset } = useCardFanPosition()
+  console.log(mode, bottomOffset)
   const [joinCode, setJoinCode] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
@@ -146,7 +193,7 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center overflow-x-hidden">
+    <div className="min-h-screen relative flex flex-col items-center overflow-x-hidden">
       {/* ── Full-screen background ── */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
@@ -156,19 +203,20 @@ function HomePage() {
       />
 
       {/* ── Main content ── */}
-      <main className="relative z-10 w-full max-w-7xl px-4 py-8 flex flex-col items-center gap-8 min-h-screen justify-center lg:justify-start lg:pt-20">
+      <main className="relative z-10 w-full max-w-7xl px-4 pt-6 flex flex-col items-center gap-8 justify-center lg:justify-start lg:pt-10">
         {/* ── Logo + Title ── */}
-        <header className="text-center mb-6">
+        <header className="text-center mb-5">
           <img
             src="/assets/logo/game-icon-1.png"
             alt="Moonfall Logo"
-            className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-4 drop-shadow-2xl"
+            className="w-20 h-20 md:w-24 md:h-24 lg:w-30 lg:h-30 mx-auto drop-shadow-2xl"
           />
           <h1
-            className="text-6xl md:text-8xl font-black tracking-wider text-silver-gradient mb-2 drop-shadow-2xl"
+            className="text-6xl md:text-8xl font-black tracking-wider mb-2 drop-shadow-2xl"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            MOONFALL
+            <span className="text-silver-gradient">MOON</span>
+            <span className="text-[#9b1c32]">FALL</span>
           </h1>
           <p className="text-slate-400 text-sm md:text-base tracking-[0.2em] uppercase font-light opacity-80">
             Trust No One. Survive the Night.
@@ -176,8 +224,8 @@ function HomePage() {
         </header>
 
         {/* ── Glassmorphic Main Panel ── */}
-        <div className="glass-panel w-full max-w-2xl rounded-2xl shadow-glass p-1 md:p-2">
-          <div className="rounded-xl border border-white/5 bg-[#0f0a0b]/40 p-6 md:p-10 flex flex-col gap-8 relative overflow-hidden">
+        <div className="glass-panel w-full max-w-[520px] rounded-2xl shadow-glass p-1 md:p-2">
+          <div className="rounded-xl border border-white/5 bg-[#0f0a0b]/40 p-5 md:p-8 flex flex-col gap-6 relative overflow-hidden">
             {/* Decorative corner accents */}
             <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#9b1c32]/30 rounded-tl-xl pointer-events-none" />
             <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#9b1c32]/30 rounded-tr-xl pointer-events-none" />
@@ -370,56 +418,31 @@ function HomePage() {
             )}
           </div>
         </div>
-
-        {/* Spacer for card fan */}
-        <div className="h-32 lg:h-48 w-full" />
       </main>
 
+      {/* Anchor: the hook measures the gap from here to viewport bottom */}
+      <div ref={anchorRef} className="w-full mt-10" />
+
       {/* ── Role Card Fan ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center pointer-events-auto h-[200px] overflow-visible">
-        <div className="relative w-full max-w-4xl flex justify-center items-end h-full">
-          {CARD_FAN_LAYOUT.map((layout) => {
-            const role = ROLE_MAP.get(layout.role)
-            if (!role) return null
-            return (
-              <div
-                key={role.name}
-                className={`role-card absolute ${layout.featured ? 'w-36 h-52 md:w-44 md:h-60' : 'w-32 h-48 md:w-40 md:h-56'} rounded-xl border-2 ${layout.borderColor} shadow-2xl transform ${layout.offsetX} ${layout.offsetY} ${layout.rotation} ${layout.z} cursor-pointer overflow-hidden`}
-                style={{
-                  backgroundImage:
-                    'linear-gradient(135deg, #2a1b1d 0%, #1a1011 100%)',
-                }}
-              >
-                <div
-                  className={`absolute inset-1 border border-white/5 rounded-lg ${layout.bgColor} flex flex-col items-center`}
-                >
-                  <div
-                    className="h-3/5 w-full bg-cover bg-center rounded-t-lg"
-                    style={{ backgroundImage: `url('${role.image}')` }}
-                  />
-                  <div className="p-2 text-center">
-                    <p
-                      className={`${layout.labelColor} text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1`}
-                      style={{ fontFamily: "'Cinzel', serif" }}
-                    >
-                      Role
-                    </p>
-                    <p
-                      className={`text-slate-200 ${layout.featured ? 'font-bold text-lg' : 'text-sm'} mt-1 tracking-wide`}
-                      style={{ fontFamily: "'Cinzel', serif" }}
-                    >
-                      {role.name}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+      <div className="relative z-20 w-full flex justify-center h-[400px] pointer-events-auto">
+        {mode === 'fixed' ? (
+          // Fixed to viewport bottom, lifting by however many px of footer are visible
+          <div
+            className="fixed z-20 w-full max-w-4xl left-1/2 -translate-x-1/2 flex justify-center h-[300px] pointer-events-auto transition-[bottom] duration-150"
+            style={{ bottom: bottomOffset }}
+          >
+            <CardFanCards />
+          </div>
+        ) : (
+          // In-flow: sits directly below the panel
+          <div className="relative w-full max-w-4xl flex justify-center h-full">
+            <CardFanCards />
+          </div>
+        )}
       </div>
 
       {/* ── Copyright Footer ── */}
-      <Footer />
+      <Footer ref={footerRef} />
     </div>
   )
 }
