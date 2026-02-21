@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Moonfall - Dark Fantasy Board Game</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#9b1c32",
+                        "secondary": "#4a5568", 
+                        "spectral": "#6366f1",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#0f0a0b", 
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "serif": ["Cinzel", "serif"],
+                    },
+                    boxShadow: {
+                        'glow-red': '0 0 20px -5px rgba(155, 28, 50, 0.6)',
+                        'glow-blue': '0 0 20px -5px rgba(99, 102, 241, 0.5)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                    },
+                    backgroundImage: {
+                        'forest': 'linear-gradient(rgba(15, 10, 11, 0.5), rgba(15, 10, 11, 0.8)), url("https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=2532&auto=format&fit=crop")',
+                        'card-back': 'linear-gradient(135deg, #2a1b1d 0%, #1a1011 100%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>.glass-panel {
+            background: rgba(22, 12, 14, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .text-silver-gradient {
+            background: linear-gradient(to bottom, #e2e8f0 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .card-fan-container:hover .role-card {
+            transform: translateY(-20px) rotate(0deg) !important;
+            margin: 0 10px;
+        }
+        .role-card {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }.thorn-divider {
+            fill: #9b1c32;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 font-display overflow-x-hidden min-h-screen relative flex flex-col items-center justify-center">
+<div class="fixed inset-0 z-0 bg-forest bg-cover bg-center bg-no-repeat pointer-events-none" data-alt="Dark misty forest with moonlight filtering through trees"></div>
+<main class="relative z-10 w-full max-w-7xl px-4 py-8 flex flex-col items-center gap-8 min-h-screen justify-center lg:justify-start lg:pt-20">
+<header class="text-center mb-6 animate-fade-in-down">
+<h1 class="font-serif text-6xl md:text-8xl font-black tracking-wider text-silver-gradient mb-2 drop-shadow-2xl">MOONFALL</h1>
+<p class="text-slate-400 text-sm md:text-base tracking-[0.2em] uppercase font-light opacity-80">Trust No One. Survive the Night.</p>
+</header>
+<div class="glass-panel w-full max-w-2xl rounded-2xl shadow-glass p-1 md:p-2 animate-fade-in-up">
+<div class="rounded-xl border border-white/5 bg-[#0f0a0b]/40 p-6 md:p-10 flex flex-col gap-8 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/30 rounded-tl-xl pointer-events-none"></div>
+<div class="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-primary/30 rounded-tr-xl pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-primary/30 rounded-bl-xl pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/30 rounded-br-xl pointer-events-none"></div>
+<div class="flex flex-col md:flex-row items-center gap-6">
+<div class="relative group cursor-pointer">
+<div class="w-24 h-24 rounded-full border-2 border-primary/50 p-1 shadow-[0_0_15px_rgba(155,28,50,0.3)] bg-[#1a0f10] relative overflow-hidden">
+<img alt="Wolf silhouette avatar" class="w-full h-full rounded-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Silhouette of a wolf howling at the moon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPtqE8OUA_BVkKEYrhyKqeRkaVSfgliHZ_-LFMdOAdyNWrN4BP8j7NPbarnEXQrb454SpvX1UiNwn1s22TSfWkn2FH_q8NMTmelAJXIx9qYdmFNrgepNQMDKRaNLvnYewRHIEaiJRcS2izQlJAcsSL3btwMGpdCfSM3xn-qa5sMjtcCoPiVhoSur41If-R7c0ntnoad-KRQ8v1c7mFBGbh9Di7ktG9UmMVdlk9D1fszaiOScMA8xipcxLGy_9IoELXVJzT_KBgpgU"/>
+<div class="absolute inset-0 bg-primary/10 rounded-full"></div>
+</div>
+<div class="absolute bottom-0 right-0 h-8 w-8 flex items-center justify-center bg-primary text-white rounded-full shadow-lg border border-black transform translate-x-1 translate-y-1">
+<span class="material-symbols-outlined text-[16px] leading-none">edit</span>
+</div>
+</div>
+<div class="flex-1 text-center md:text-left w-full">
+<label class="text-slate-400 text-xs uppercase tracking-widest font-semibold mb-2 block">Your Identity</label>
+<div class="flex items-center justify-center md:justify-between gap-3 bg-black/30 p-3 rounded-lg border border-white/10 group-focus-within:border-primary/50 transition-colors">
+<input class="bg-transparent border-none text-slate-200 font-serif text-xl focus:ring-0 p-0 w-full placeholder-slate-600" placeholder="Enter Name" type="text" value="SilentHunter #492"/>
+<button class="text-slate-500 hover:text-white transition-colors" title="Randomize Name">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative h-px w-full my-2">
+<div class="absolute inset-0 flex items-center justify-center">
+<svg class="w-full h-8 text-primary/40" preserveAspectRatio="none" viewBox="0 0 400 20">
+<path class="opacity-30" d="M0,10 Q50,15 100,10 T200,10 T300,10 T400,10" fill="none" stroke="currentColor" stroke-width="1"></path>
+<path d="M190,10 L200,15 L210,10 L200,5 Z" fill="currentColor"></path> 
+<circle cx="50" cy="10" r="2"></circle>
+<circle cx="350" cy="10" r="2"></circle>
+</svg>
+</div>
+</div>
+<div class="flex flex-col gap-6">
+<button class="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#701020] to-[#9b1c32] p-[1px] shadow-glow-red transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_-5px_rgba(155,28,50,0.8)]">
+<div class="relative flex h-14 items-center justify-center gap-3 rounded-xl bg-[#260a0f] px-8 transition-all group-hover:bg-opacity-0">
+<span class="material-symbols-outlined text-red-200 group-hover:text-white transition-colors">add_circle</span>
+<span class="font-bold text-lg tracking-wide text-red-100 group-hover:text-white transition-colors">Create New Lobby</span>
+</div>
+</button>
+<div class="flex items-center gap-4 text-slate-500 text-sm font-medium">
+<div class="h-px bg-white/10 flex-1"></div>
+<span class="uppercase tracking-widest text-xs">Or Join Existing</span>
+<div class="h-px bg-white/10 flex-1"></div>
+</div>
+<div class="flex flex-col sm:flex-row gap-3">
+<div class="relative flex-1 group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-500 group-focus-within:text-spectral transition-colors">tag</span>
+</div>
+<input class="w-full h-14 bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:border-spectral/50 focus:ring-1 focus:ring-spectral/50 transition-all font-mono tracking-widest text-lg uppercase shadow-inner" maxlength="6" placeholder="Enter 6-Digit Code" type="text"/>
+</div>
+<button class="h-14 px-8 rounded-xl bg-[#1e1b4b] border border-indigo-500/30 text-indigo-100 font-bold tracking-wide hover:bg-indigo-900/50 hover:border-indigo-400 hover:text-white hover:shadow-glow-blue transition-all flex items-center justify-center gap-2 min-w-[140px]">
+<span>Join</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="h-32 lg:h-48 w-full"></div>
+</main>
+<footer class="fixed bottom-0 left-0 right-0 z-20 flex justify-center pointer-events-auto h-[200px] overflow-visible">
+<div class="relative w-full max-w-4xl flex justify-center items-end card-fan-container h-full">
+<div class="role-card absolute w-32 h-48 md:w-40 md:h-56 bg-card-back rounded-xl border-2 border-[#544] shadow-2xl transform translate-y-24 md:translate-y-20 -translate-x-24 md:-translate-x-32 -rotate-12 hover:-translate-y-32 z-10 cursor-pointer overflow-hidden group">
+<div class="absolute inset-1 border border-[#ffffff10] rounded-lg bg-[#2a2223] flex flex-col items-center">
+<div class="h-3/5 w-full bg-cover bg-center" data-alt="Dark fantasy villager portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBRys0wxvgP9VKVAwuqxLotymLo6mZ-hZkfImyjAtuTG6WRI0Q_COhkRt4xbVvCWl06UgsXW_TKQ4KlKA8_5pR6slUr6UOxLn5VY6WPG1PppaPhcy8B7cwnx6gIoV7qRBpLFg5kQOxQ_TTOirfjwmz19OALr_2nRt0_RqPZk2s9VucG_vyqMybXaN2H9zJiAGpRu2Sjm9ofrNNB2ykT9_bpKiJ558u97Wq7rTol85Ssn5TEcezNjAcgHNznLCLIgq3fE04d2HdcBN8');"></div>
+<div class="p-2 text-center">
+<p class="font-serif text-amber-500/80 text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1">Role</p>
+<p class="font-serif text-slate-200 text-sm mt-1">Villager</p>
+</div>
+</div>
+</div>
+<div class="role-card absolute w-32 h-48 md:w-40 md:h-56 bg-card-back rounded-xl border-2 border-[#456] shadow-2xl transform translate-y-20 md:translate-y-16 -translate-x-8 md:-translate-x-10 -rotate-6 hover:-translate-y-32 z-20 cursor-pointer overflow-hidden group">
+<div class="absolute inset-1 border border-[#ffffff10] rounded-lg bg-[#1a1b26] flex flex-col items-center">
+<div class="h-3/5 w-full bg-cover bg-center" data-alt="Mystical seer holding a crystal ball" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBknJVtrUIB7repVsbihMlsG3js_jr4s3_RXk3e2hmfiQ3NukgbBIJVY3CHGMUr7g9sb2oIINy8nHE1RcNNo-GMtK0OL-GvXOXE1Fd2GU8Zc9CrKUfaIxmu50E1te4FTZVBFO4Ac_O70NEXRh4qlj4qkyG-riPMHPu48TjdBKPyFRaoTRnXLAVxpeDWOS0Yx4RK3aG7dTiPrgZAZoIDzUo3Wns_IpJuyqIC_eq1bAuvD7ruhaJGFfqf1i96V_CXNU2IeMq77i0DLfg');"></div>
+<div class="p-2 text-center">
+<p class="font-serif text-indigo-400/80 text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1">Role</p>
+<p class="font-serif text-slate-200 text-sm mt-1">The Seer</p>
+</div>
+</div>
+</div>
+<div class="role-card absolute w-36 h-52 md:w-44 md:h-60 bg-card-back rounded-xl border-2 border-[#9b1c32] shadow-[0_0_30px_rgba(155,28,50,0.4)] transform translate-y-16 md:translate-y-10 rotate-0 hover:-translate-y-36 z-30 cursor-pointer overflow-hidden group">
+<div class="absolute inset-1 border border-[#ffffff10] rounded-lg bg-[#2b0e11] flex flex-col items-center">
+<div class="h-3/5 w-full bg-cover bg-center" data-alt="Menacing werewolf with glowing red eyes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAg_GtNBtN1yPhioqMZ82wshxLFu51pdv9CWDueG8Iq2Yl0RvLXmAqKe-269mZcdJYvDiTk4oZphFNw28haSrBbIbd54BmnptBEdOEP3b98qwk8MAIxD_Ldl_yg3HhbFIkW4ra5N5rDkLJ5oSZE3D3htgn4pUQGKKKSbJue-KxCK1OU6bPYYS5RvkHdA3lhfqX0xEsF4qgUyPuGQ6ugijcrBf2Ubm4OpD5CoW8JBblkH_pUYzszyqZbEHKk8iNM6ugFESvQBDaZQmA');"></div>
+<div class="p-2 text-center">
+<p class="font-serif text-red-500/80 text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1">Role</p>
+<p class="font-serif text-white font-bold text-lg mt-1 tracking-wide">Werewolf</p>
+</div>
+</div>
+</div>
+<div class="role-card absolute w-32 h-48 md:w-40 md:h-56 bg-card-back rounded-xl border-2 border-[#464] shadow-2xl transform translate-y-20 md:translate-y-16 translate-x-8 md:translate-x-10 rotate-6 hover:-translate-y-32 z-20 cursor-pointer overflow-hidden group">
+<div class="absolute inset-1 border border-[#ffffff10] rounded-lg bg-[#1a261b] flex flex-col items-center">
+<div class="h-3/5 w-full bg-cover bg-center" data-alt="Hunter with a bow in shadows" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPewnF0j1N4vM0F0whyMsVNUvj796JxX_N-yHbx8vgGcIWYHhAbaciCeZ94weXwzCXk71ayKML0VHBlTXp8-a7iMR-0eOYM3qL1PM6uRrDQpZJsG0Cpx-_l7mlZ0mZQXt-fywOzC2jYs5j8-jGfVSwc88KPM6m2AR_Mu3OjkaoCj6-EEKBB_8QAP2fH0ZbYoYTs55bE0f_YflKLSuIsfW0qCwoFtXxsUgIIin46tX5I5gm2ZfuuRLDj5druIPrNYdVVi_LXMVV6Og');"></div>
+<div class="p-2 text-center">
+<p class="font-serif text-emerald-500/80 text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1">Role</p>
+<p class="font-serif text-slate-200 text-sm mt-1">Hunter</p>
+</div>
+</div>
+</div>
+<div class="role-card absolute w-32 h-48 md:w-40 md:h-56 bg-card-back rounded-xl border-2 border-[#546] shadow-2xl transform translate-y-24 md:translate-y-20 translate-x-24 md:translate-x-32 rotate-12 hover:-translate-y-32 z-10 cursor-pointer overflow-hidden group">
+<div class="absolute inset-1 border border-[#ffffff10] rounded-lg bg-[#221a26] flex flex-col items-center">
+<div class="h-3/5 w-full bg-cover bg-center" data-alt="Witch brewing potions" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDH7OClRYOrBWnD14YCNXDkaO4JXqYJZOqUoJz-cKqTTUgyy4Hgqy33J7XPJpWOd-NntFqvG63qDLtFejRHW7piFszgndLEi0GEo6I_0ZEzlYS-CTWv-Y_OsEoHm0LNzfNnM2JN_4rk31B0ql4OwALRi85SPtmkAusebc1fF9GHKQiCQXW2pbMDkKfe_ChMjPP9NSDQLoZbyFVyCW-tMYlDJf6pyCiGI-pnfytK4I6KrRdQpwNpHDjRjKTQgNA8dvKRFxUnaWnYV5M');"></div>
+<div class="p-2 text-center">
+<p class="font-serif text-purple-500/80 text-xs font-bold uppercase tracking-widest mt-2 border-b border-white/10 pb-1">Role</p>
+<p class="font-serif text-slate-200 text-sm mt-1">Witch</p>
+</div>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

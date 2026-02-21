@@ -2,6 +2,58 @@
 
 @import 'tw-animate-css';
 
+/* ── Moonfall: Local Cinzel Font ── */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/assets/fonts/Cinzel/Cinzel-VariableFont_wght.ttf')
+    format('truetype');
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+/* ── Moonfall: Glassmorphism Panel ── */
+.glass-panel {
+  background: rgba(15, 10, 11, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Moonfall: Silver Gradient Title Text ── */
+.text-silver-gradient {
+  background: linear-gradient(to bottom, #e2e8f0 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Moonfall: Role Card Fan Animation ── */
+/* Individual card pull-out: stays in fan shape, hovers up + scales on individual hover */
+.role-card {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-origin: bottom center;
+}
+
+.role-card:hover {
+  z-index: 50 !important;
+  transform: translateY(-40px) scale(1.12) !important;
+  filter: brightness(1.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(155, 28, 50, 0.3);
+}
+
+/* ── Moonfall: Glow Shadows ── */
+.shadow-glow-red {
+  box-shadow: 0 0 20px -5px rgba(155, 28, 50, 0.6);
+}
+
+.shadow-glow-blue {
+  box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.5);
+}
+
+.shadow-glass {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 body {
